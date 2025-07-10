@@ -1,39 +1,47 @@
+import streamlit as st # Streamlitライブラリのインポートが必要
 import requests
 
 # APIの情報を設定
-api_key = "あなたのDifyのAPIキー"
+api_key = st.secrets["DIFY_API_KEY"]
 api_url = "https://api.dify.ai/v1/chat-messages"
 
-# ヘッダー情報を設定
-headers = {
-    "Authorization": f"Bearer {api_key}",
-    "Content-Type": "application/json"
-}
+# タイトルを設定
+st.title("🤖 AIチャット")
 
-# 無限ループで会話を開始
-while True:
-    # ユーザーからの入力を受け付ける
-    user_message = input("あなた：")
+# 1. 初期化
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-    # 'exit'と入力されたらループを終了
-    if user_message == "exit":
-        print("会話を終了します。")
-        break
+# 2. 履歴表示
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-    # Difyに送信するデータを設定
-    data = {
-        "inputs": {},
-        "query": user_message,
-        "user": "my-first-user",
-        "response_mode": "blocking"
+# 3. 入力と履歴追加
+if prompt := st.chat_input("メッセージを送信"):
+    # ユーザーの入力を保存＆表示
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # --- 以下、API通信 ---
+    api_url = "https://api.dify.ai/v1/chat-messages"
+    headers = {
+      "Authorization": f"Bearer {api_key}",
+      "Content-Type": "application/json"
     }
-
-    # APIを呼び出す
+    data = {
+      "inputs": {},
+      "query": prompt,
+      "user": "my-first-user",
+      "response_mode": "blocking"
+    }
     response = requests.post(api_url, headers=headers, json=data)
+    print(response.status_code)
+    ai_message = response.json()["answer"]
+    # --- ここまで ---
 
-    # 応答からAIのメッセージを取り出して表示
-    # 【注意】DifyのAPI仕様により、キーの階層が異なる場合があります。
-    # 実際の応答JSONを確認し、適切なキーを指定してください。
-    # ここでは仮に 'answer' としています。
-    ai_message = response.json()['answer']
-    print(f"AI面接官：{ai_message}")
+    # AIの返答を保存＆表示（オウム返し→APIレスポンスに変更）
+    st.session_state.messages.append({"role": "assistant", "content": ai_message})
+    with st.chat_message("assistant"):
+        st.markdown(ai_message)
