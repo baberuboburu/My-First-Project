@@ -2,7 +2,7 @@ import streamlit as st # Streamlitライブラリのインポートが必要
 import requests
 
 # APIの情報を設定
-api_key = st.secrets["DIFY_API_KEY"]
+api_key = st.secrets["OPENAI_API_KEY"]
 api_url = "https://api.dify.ai/v1/chat-messages"
 
 # タイトルを設定
@@ -45,3 +45,4 @@ if prompt := st.chat_input("メッセージを送信"):
     st.session_state.messages.append({"role": "assistant", "content": ai_message})
     with st.chat_message("assistant"):
         st.markdown(ai_message)
+api_key = "app-d4HSEXJLD6Kyxu6CGqVb5zAN"
