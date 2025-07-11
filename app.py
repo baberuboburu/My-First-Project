@@ -2,7 +2,7 @@ import streamlit as st # Streamlitライブラリのインポートが必要
 import requests
 
 # APIの情報を設定
-api_key = st.secrets["OPENAI_API_KEY"]
+api_key = st.secrets["DIFY_API_KEY"]
 api_url = "https://api.dify.ai/v1/chat-messages"
 
 # タイトルを設定
@@ -37,7 +37,6 @@ if prompt := st.chat_input("メッセージを送信"):
       "response_mode": "blocking"
     }
     response = requests.post(api_url, headers=headers, json=data)
-    print(response.status_code)
     ai_message = response.json()["answer"]
     # --- ここまで ---
 
