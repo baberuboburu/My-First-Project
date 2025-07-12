@@ -1,12 +1,20 @@
-import streamlit as st # Streamlitライブラリのインポートが必要
+from vector_store import VectorStore
+from functions import get_rag_response
+import streamlit as st
 import requests
 
-# APIの情報を設定
-api_key = st.secrets["DIFY_API_KEY"]
-api_url = "https://api.dify.ai/v1/chat-messages"
+# ベクトルストアのインスタンス化と読み込み
+vector_store_instance = VectorStore()
+vector_store = vector_store_instance.read()
+
+# API Keyの取得
+openai_api_key = st.secret["OPENAI_API_KEY"]
+
+
+
 
 # タイトルを設定
-st.title("🤖 AIチャット")
+st.title("🤖 RAGを使ったチャットボット")
 
 # 1. 初期化
 if "messages" not in st.session_state:
@@ -23,24 +31,11 @@ if prompt := st.chat_input("メッセージを送信"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
+    
+    # RAGを使った応答の生成
+    ai_message = get_rag_response(prompt, vector_store, openai_api_key)
 
-    # --- 以下、API通信 ---
-    api_url = "https://api.dify.ai/v1/chat-messages"
-    headers = {
-      "Authorization": f"Bearer {api_key}",
-      "Content-Type": "application/json"
-    }
-    data = {
-      "inputs": {},
-      "query": prompt,
-      "user": "my-first-user",
-      "response_mode": "blocking"
-    }
-    response = requests.post(api_url, headers=headers, json=data)
-    ai_message = response.json()["answer"]
-    # --- ここまで ---
-
-    # AIの返答を保存＆表示（オウム返し→APIレスポンスに変更）
+    # AIの返答を保存＆表示（オウム返し→RAGチャットボットに変更）
     st.session_state.messages.append({"role": "assistant", "content": ai_message})
     with st.chat_message("assistant"):
         st.markdown(ai_message)
